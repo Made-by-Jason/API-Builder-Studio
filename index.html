@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Builder Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        /* @tweakable Material Design 3 primary color */
+                        primary: '#6750A4',
+                        /* @tweakable Material Design 3 secondary color */
+                        secondary: '#625B71',
+                        /* @tweakable Material Design 3 tertiary color */
+                        tertiary: '#7D5260',
+                        /* @tweakable Material Design 3 surface color */
+                        surface: '#FEF7FF',
+                        /* @tweakable Material Design 3 surface variant color */
+                        'surface-variant': '#E7E0EC',
+                        /* @tweakable Material Design 3 outline color */
+                        outline: '#79747E',
+                        /* @tweakable Material Design 3 error color */
+                        error: '#B3261E',
+                        /* @tweakable Material Design 3 success color */
+                        success: '#2E7D32'
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        /* @tweakable Material Design 3 border radius for cards */
+                        'md3': '12px',
+                        /* @tweakable Material Design 3 border radius for buttons */
+                        'md3-button': '20px',
+                        /* @tweakable Material Design 3 border radius for inputs */
+                        'md3-input': '4px',
+                    },
+                    boxShadow: {
+                        /* @tweakable Material Design 3 elevation shadow */
+                        'md3': '0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 1px 2px 0 rgba(0, 0, 0, 0.24)',
+                        /* @tweakable Material Design 3 elevated shadow */
+                        'md3-elevated': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #FEF7FF;
+        }
+        .json-tree {
+            font-family: 'Roboto Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-surface min-h-screen flex flex-col">
+    <div id="root-container" class="flex flex-col flex-1">
+        <!-- React app will render inside #root, and this container will handle the flex layout -->
+    </div>
+    <script type="text/babel" src="app.js"></script>
+</body>
+</html>
