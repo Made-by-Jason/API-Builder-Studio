@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tests</title>
+    <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+    <style>
+        /* Hide the test container by default */
+        #test-container {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="mocha"></div>
+    <div id="test-container"></div>
+
+    <!-- Frameworks and App -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Test Libraries -->
+    <script src="https://unpkg.com/mocha/mocha.js"></script>
+    <script src="https://unpkg.com/chai/chai.js"></script>
+    <script src="https://unpkg.com/@testing-library/dom/dist/dom-testing-library.umd.js"></script>
+    <script src="https://unpkg.com/@testing-library/react/dist/react-testing-library.umd.js"></script>
+
+    <!-- App Script -->
+    <!-- Important: Load app script as text to prevent immediate execution -->
+    <script type="text/babel" src="app.js"></script>
+
+    <!-- Test Setup -->
+    <script>
+        mocha.setup('bdd');
+        const expect = chai.expect;
+        // Expose React Testing Library functions globally for convenience in tests
+        const { render, fireEvent, screen, waitFor } = ReactTestingLibrary;
+    </script>
+
+    <!-- Test Files -->
+    <!-- We will create these files in the next steps -->
+    <script type="text/babel" src="tests/utils.test.js"></script>
+    <script type="text/babel" src="tests/components.test.js"></script>
+
+    <!-- Run Tests -->
+    <script>
+        // Use a window.onload to ensure all scripts including app.js are loaded and processed by Babel
+        window.onload = function() {
+            mocha.run();
+        };
+    </script>
+</body>
+</html>

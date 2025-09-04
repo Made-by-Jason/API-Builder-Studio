@@ -547,77 +547,82 @@ function App() {
         }));
     };
 
-    const exportConfig = (format) => {
-        let content;
-        let filename;
-        
-        switch (format) {
-            case 'json':
-                content = JSON.stringify(endpoint, null, 2);
-                filename = 'api-config.json';
-                break;
-            case 'postman':
-                content = JSON.stringify({
-                    info: { name: 'API Builder Studio Collection' },
-                    item: [{
-                        name: `${endpoint.method} ${endpoint.path}`,
-                        request: {
-                            method: endpoint.method,
-                            header: endpoint.headers.map(h => ({ key: h.key, value: h.value })),
-                            url: {
-                                raw: `${endpoint.baseUrl}${endpoint.path}`,
-                                host: [endpoint.baseUrl.replace('https://', '').replace('http://', '')],
-                                path: endpoint.path.split('/').filter(Boolean)
-                            },
-                            body: endpoint.method !== 'GET' ? {
-                                mode: 'raw',
-                                raw: endpoint.body
-                            } : undefined
-                        }
-                    }]
-                }, null, 2);
-                filename = 'postman-collection.json';
-                break;
-            case 'openapi':
-                content = JSON.stringify({
-                    openapi: '3.0.0',
-                    info: { title: 'API Builder Studio', version: '1.0.0' },
-                    paths: {
-                        [endpoint.path]: {
-                            [endpoint.method.toLowerCase()]: {
-                                summary: `${endpoint.method} ${endpoint.path}`,
-                                parameters: endpoint.queryParams.map(p => ({
-                                    name: p.key,
-                                    in: 'query',
-                                    required: p.required,
-                                    schema: { type: 'string' }
-                                })),
-                                responses: {
-                                    '200': {
-                                        description: 'Success',
-                                        content: {
-                                            'application/json': {
-                                                schema: { type: 'object' }
-                                            }
+// Utility function for exporting API configurations.
+const exportConfig = (format, endpoint, forTest = false) => {
+    let content;
+    let filename;
+
+    switch (format) {
+        case 'json':
+            content = JSON.stringify(endpoint, null, 2);
+            filename = 'api-config.json';
+            break;
+        case 'postman':
+            content = JSON.stringify({
+                info: { name: 'API Builder Studio Collection' },
+                item: [{
+                    name: `${endpoint.method} ${endpoint.path}`,
+                    request: {
+                        method: endpoint.method,
+                        header: endpoint.headers.map(h => ({ key: h.key, value: h.value })),
+                        url: {
+                            raw: `${endpoint.baseUrl}${endpoint.path}`,
+                            host: [endpoint.baseUrl.replace('https://', '').replace('http://', '')],
+                            path: endpoint.path.split('/').filter(Boolean)
+                        },
+                        body: endpoint.method !== 'GET' ? {
+                            mode: 'raw',
+                            raw: endpoint.body
+                        } : undefined
+                    }
+                }]
+            }, null, 2);
+            filename = 'postman-collection.json';
+            break;
+        case 'openapi':
+            content = JSON.stringify({
+                openapi: '3.0.0',
+                info: { title: 'API Builder Studio', version: '1.0.0' },
+                paths: {
+                    [endpoint.path]: {
+                        [endpoint.method.toLowerCase()]: {
+                            summary: `${endpoint.method} ${endpoint.path}`,
+                            parameters: endpoint.queryParams.map(p => ({
+                                name: p.key,
+                                in: 'query',
+                                required: p.required,
+                                schema: { type: 'string' }
+                            })),
+                            responses: {
+                                '200': {
+                                    description: 'Success',
+                                    content: {
+                                        'application/json': {
+                                            schema: { type: 'object' }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }, null, 2);
-                filename = 'openapi-spec.json';
-                break;
-        }
+                }
+            }, null, 2);
+            filename = 'openapi-spec.json';
+            break;
+    }
 
-        const blob = new Blob([content], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
+    if (forTest) {
+        return { content, filename };
+    }
+
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+};
 
     const getFullUrl = () => {
         const params = endpoint.queryParams
@@ -652,7 +657,6 @@ function App() {
                                     getFullUrl={getFullUrl}
                                     sendRequest={sendRequest}
                                     isLoading={isLoading}
-                                    exportConfig={exportConfig}
                                 />
                             </div>
                             <div className="space-y-6">
@@ -760,14 +764,13 @@ function EndpointBuilder({
     removeHeader,
     getFullUrl,
     sendRequest,
-    isLoading,
-    exportConfig
+    isLoading
 }) {
     return (
         <MaterialCard className="p-6">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Endpoint Configuration</h2>
-                <ExportDropdown exportConfig={exportConfig} />
+                <ExportDropdown endpoint={endpoint} />
             </div>
 
             <div className="space-y-6">
@@ -1052,9 +1055,14 @@ function SettingsSection({ endpoint, setEndpoint }) {
 }
 
 // Export Dropdown
-function ExportDropdown({ exportConfig }) {
+function ExportDropdown({ endpoint }) {
     const [isOpen, setIsOpen] = useState(false);
     const MotionDiv = motion.div || 'div';
+
+    const handleExport = (format) => {
+        exportConfig(format, endpoint);
+        setIsOpen(false);
+    };
 
     return (
         <div className="relative">
@@ -1077,21 +1085,21 @@ function ExportDropdown({ exportConfig }) {
                         >
                             <div className="py-2">
                                 <button
-                                    onClick={() => { exportConfig('json'); setIsOpen(false); }}
+                                    onClick={() => handleExport('json')}
                                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-surface-variant"
                                 >
                                     <span className="material-icons mr-3 text-sm">code</span>
                                     JSON Configuration
                                 </button>
                                 <button
-                                    onClick={() => { exportConfig('postman'); setIsOpen(false); }}
+                                    onClick={() => handleExport('postman')}
                                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-surface-variant"
                                 >
                                     <span className="material-icons mr-3 text-sm">api</span>
                                     Postman Collection
                                 </button>
                                 <button
-                                    onClick={() => { exportConfig('openapi'); setIsOpen(false); }}
+                                    onClick={() => handleExport('openapi')}
                                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-surface-variant"
                                 >
                                     <span className="material-icons mr-3 text-sm">description</span>
@@ -1345,47 +1353,49 @@ function MockEditor({ mockResponse, setMockResponse }) {
     );
 }
 
+// Utility function for inferring a JSON schema from an object.
+const inferSchema = (obj, maxDepth = 5, depth = 0) => {
+    if (depth > maxDepth) {
+        return { type: 'string', description: 'Maximum depth reached, schema truncated.' };
+    }
+
+    if (obj === null) {
+        return { type: 'null' };
+    }
+
+    const type = typeof obj;
+    if (type === 'boolean' || type === 'number' || type === 'string') {
+        return { type: type };
+    }
+
+    if (Array.isArray(obj)) {
+        const itemsSchema = obj.length > 0 ? inferSchema(obj[0], maxDepth, depth + 1) : {};
+        return { type: 'array', items: itemsSchema };
+    }
+
+    if (type === 'object') {
+        const properties = {};
+        const required = [];
+        for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                properties[key] = inferSchema(obj[key], maxDepth, depth + 1);
+                // For simplicity, consider all present fields as 'required' in a basic inference
+                required.push(key);
+            }
+        }
+        return { type: 'object', properties, required: required.length > 0 ? required : undefined };
+    }
+
+    return { type: 'unknown' };
+};
+
+
 // New SchemaView Component
 function SchemaView({ data }) {
     /* @tweakable maximum depth for schema inference */
     const maxSchemaDepth = 5;
 
-    const inferSchema = (obj, depth = 0) => {
-        if (depth > maxSchemaDepth) {
-            return { type: 'string', description: 'Maximum depth reached, schema truncated.' };
-        }
-
-        if (obj === null) {
-            return { type: 'null' };
-        }
-        
-        const type = typeof obj;
-        if (type === 'boolean' || type === 'number' || type === 'string') {
-            return { type: type };
-        }
-
-        if (Array.isArray(obj)) {
-            const itemsSchema = obj.length > 0 ? inferSchema(obj[0], depth + 1) : {};
-            return { type: 'array', items: itemsSchema };
-        }
-
-        if (type === 'object') {
-            const properties = {};
-            const required = [];
-            for (const key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    properties[key] = inferSchema(obj[key], depth + 1);
-                    // For simplicity, consider all present fields as 'required' in a basic inference
-                    required.push(key); 
-                }
-            }
-            return { type: 'object', properties, required: required.length > 0 ? required : undefined };
-        }
-
-        return { type: 'unknown' };
-    };
-
-    const schema = inferSchema(data);
+    const schema = inferSchema(data, maxSchemaDepth);
     const schemaString = JSON.stringify(schema, null, 2);
 
     return (
